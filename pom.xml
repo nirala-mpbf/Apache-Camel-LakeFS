@@ -58,6 +58,14 @@
 			<scope>runtime</scope>
 		</dependency>
 
+
+		<!-- lakeFS Java SDK -->
+		<dependency>
+			<groupId>io.lakefs</groupId>
+			<artifactId>sdk</artifactId>
+			<version>1.84.0</version>
+		</dependency>
+
 		<!-- Flyway -->
 <!--		<dependency>-->
 <!--			<groupId>org.flywaydb</groupId>-->

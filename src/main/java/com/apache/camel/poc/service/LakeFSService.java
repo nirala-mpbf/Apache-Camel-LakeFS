@@ -1,16 +1,9 @@
 
 package com.apache.camel.poc.service;
 
-import io.lakefs.clients.sdk.ApiClient;
-import io.lakefs.clients.sdk.ApiException;
-import io.lakefs.clients.sdk.ObjectsApi;
-import io.lakefs.clients.sdk.CommitsApi;
-import io.lakefs.clients.sdk.RepositoriesApi;
-import io.lakefs.clients.sdk.model.ObjectStats;
-import io.lakefs.clients.sdk.model.RepositoryList;
-import io.lakefs.clients.sdk.model.Commit;
-import io.lakefs.clients.sdk.model.CommitCreation;
 
+import io.lakefs.clients.sdk.*;
+import io.lakefs.clients.sdk.model.*;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -21,11 +14,15 @@ public class LakeFSService {
     private final RepositoriesApi repositoriesApi;
     private final ObjectsApi objectsApi;
     private final CommitsApi commitsApi;
+    private final BranchesApi branchesApi;
+    private final RefsApi refsApi;
 
     public LakeFSService(ApiClient apiClient) {
         this.repositoriesApi = new RepositoriesApi(apiClient);
         this.objectsApi = new ObjectsApi(apiClient);
         this.commitsApi = new CommitsApi(apiClient);
+        this.branchesApi = new BranchesApi(apiClient);
+        this.refsApi = new RefsApi(apiClient);
     }
 
     public RepositoryList listRepositories() throws ApiException {
@@ -48,6 +45,36 @@ public class LakeFSService {
 
         return commitsApi
                 .commit(repository, branch, commitCreation)
+                .execute();
+    }
+
+    public void revertCommit(String repository, String branch, String commitId) throws ApiException {
+
+        RevertCreation revertCreation = new RevertCreation();
+        revertCreation.setRef(commitId);
+        revertCreation.setParentNumber(1);
+
+        branchesApi
+                .revertBranch(repository, branch, revertCreation)
+                .execute();
+
+    }
+
+    public Object listBranches(String repository) throws ApiException {
+        return branchesApi
+                .listBranches(repository)
+                .execute();
+    }
+
+    public Object listCommits(String repository, String branch) throws ApiException {
+        return refsApi.
+                logCommits(repository, branch)
+                .execute();
+    }
+
+    public Object listObjects(String repository, String branch) throws ApiException {
+        return objectsApi.
+                listObjects(repository, branch)
                 .execute();
     }
 

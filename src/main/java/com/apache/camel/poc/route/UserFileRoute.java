@@ -1,6 +1,7 @@
 
 package com.apache.camel.poc.route;
 
+import com.apache.camel.poc.camelProcessor.LakeFSFileCommitProcessor;
 import com.apache.camel.poc.camelProcessor.UserIdProcessor;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
@@ -13,9 +14,11 @@ public class UserFileRoute extends RouteBuilder {
 
     private static final Logger log = LoggerFactory.getLogger(UserFileRoute.class);
     private final UserIdProcessor userIdProcessor;
+    private final LakeFSFileCommitProcessor lakeFSFileCommitProcessor;
 
-    public UserFileRoute(UserIdProcessor userIdProcessor) {
+    public UserFileRoute(UserIdProcessor userIdProcessor, LakeFSFileCommitProcessor lakeFSFileCommitProcessor) {
         this.userIdProcessor = userIdProcessor;
+        this.lakeFSFileCommitProcessor = lakeFSFileCommitProcessor;
     }
 
     @Override
@@ -24,9 +27,10 @@ public class UserFileRoute extends RouteBuilder {
         from("file:input")
             .routeId("user-file-route")
             .log("File received: ${header.CamelFileName}")
+            .process(lakeFSFileCommitProcessor) // lakeFS
             .split(body().tokenize("\n"))
                 .doTry()
-                    .process(userIdProcessor)
+                    .process(userIdProcessor)// DB
                     .log("User ID processed: ${body}")
                 .doCatch(Exception.class)
                     .process(exchange -> {
